@@ -19,7 +19,7 @@
       <div class="lock-card">
         <div class="brand-icon">🔐</div>
         <h1>小日子密碼</h1>
-        <p class="sub">只記你看得懂的密碼提示，不保存真正密碼。</p>
+        <p class="sub">真正密碼只用來當下產生提示，不寫入本機、不上傳網路。</p>
 
         <div id="firstRunBlock" class="hidden">
           <label>建立 App PIN</label>
@@ -27,14 +27,17 @@
           <label>再輸入一次</label>
           <input id="confirmPin" type="password" inputmode="numeric" autocomplete="new-password" maxlength="12" placeholder="再次輸入" />
           <button id="createVaultBtn" class="primary full">建立我的密碼本</button>
-          <p class="tiny">PIN 只用來解鎖本機加密資料。忘記 PIN 無法還原。</p>
+          <p class="tiny">PIN 是 Face ID 的備援解鎖方式，也用來保護加密備份。請務必記住。</p>
         </div>
 
         <div id="unlockBlock" class="hidden">
+          <button id="faceUnlockBtn" class="face-button full hidden">◉ 使用 Face ID 解鎖</button>
+          <div id="faceDivider" class="divider hidden"><span>或</span></div>
           <label>App PIN</label>
           <input id="unlockPin" type="password" inputmode="numeric" autocomplete="current-password" maxlength="12" placeholder="輸入 PIN" />
-          <button id="unlockBtn" class="primary full">解鎖</button>
+          <button id="unlockBtn" class="primary full">用 PIN 解鎖</button>
           <p id="unlockError" class="error hidden">PIN 不正確</p>
+          <p id="migrationNote" class="tiny hidden">偵測到舊版資料。第一次用 PIN 解鎖後會自動安全升級，不會刪除現有紀錄。</p>
         </div>
       </div>
     </section>
@@ -49,6 +52,14 @@
       </header>
 
       <main class="content">
+        <div id="backupReminder" class="backup-reminder hidden">
+          <div>
+            <strong>建議備份一下</strong>
+            <span id="backupReminderText">已超過 30 天沒有備份。</span>
+          </div>
+          <button id="backupNowTopBtn" class="mini-btn">立即備份</button>
+        </div>
+
         <div class="search-wrap">
           <span>🔎</span>
           <input id="searchInput" type="search" placeholder="搜尋名稱、帳號、分類…" autocomplete="off" />
@@ -96,9 +107,20 @@
           <label>帳號</label>
           <input id="accountInput" type="text" placeholder="Email、手機或會員帳號" autocomplete="off" />
 
+          <div class="mask-card">
+            <div class="mask-card-title">✨ 自動產生密碼提示</div>
+            <p>可暫時輸入真正密碼，系統隨機把 3～4 個英文字母或數字變成 <b>*</b>。真正密碼不會寫進儲存空間，產生後輸入框會立即清空。</p>
+            <label>真正密碼（只在此刻暫時使用）</label>
+            <div class="input-action-row">
+              <input id="plainPasswordInput" type="password" placeholder="輸入後按「產生提示」" autocomplete="off" autocapitalize="none" spellcheck="false" data-1p-ignore="true" data-lpignore="true" />
+              <button id="generateHintBtn" type="button" class="secondary compact">產生提示</button>
+            </div>
+            <p id="maskResultNote" class="tiny success-text hidden"></p>
+          </div>
+
           <label>密碼提示 <span class="req">必填</span></label>
-          <input id="hintInput" type="text" placeholder="例如：Ab**12*4" autocomplete="off" spellcheck="false" />
-          <div class="safety-tip">請直接輸入已遮蔽版本；你想用幾個 <b>*</b>、放在哪裡都可以。不要輸入完整密碼。</div>
+          <input id="hintInput" type="text" placeholder="例如：Ab**12*4" autocomplete="off" autocapitalize="none" spellcheck="false" />
+          <div class="safety-tip">這一欄才是 App 真正會保存的內容。你也可以完全不輸入真密碼，直接自己填提示。</div>
 
           <label>分類</label>
           <select id="categoryInput">
@@ -136,10 +158,42 @@
         </div>
         <div class="settings-list">
           <div class="setting-card">
-            <h3>安全</h3>
-            <p>資料以 AES-GCM 加密後才寫入此裝置。真正密碼請不要輸入 App。</p>
-            <button id="changePinBtn" class="secondary full">變更 App PIN</button>
+            <h3>Face ID</h3>
+            <p id="faceStatusText">尚未設定。啟用後可直接用 Face ID 解鎖，PIN 仍保留作為備援。</p>
+            <button id="enableFaceBtn" class="secondary full">啟用 Face ID</button>
+            <button id="disableFaceBtn" class="secondary full hidden">停用 Face ID</button>
+            <p class="tiny">使用 Safari / PWA 的 Passkey + WebAuthn PRF，把解鎖金鑰綁定到裝置驗證；App 不會取得你的臉部資料。</p>
+          </div>
+
+          <div class="setting-card">
+            <h3>自動鎖定</h3>
+            <p>App 離開背景超過 30 秒會鎖定；也可設定操作閒置時間。</p>
+            <select id="autoLockSelect" class="settings-select">
+              <option value="60000">1 分鐘</option>
+              <option value="180000">3 分鐘</option>
+              <option value="300000">5 分鐘</option>
+              <option value="900000">15 分鐘</option>
+            </select>
             <button id="lockNowBtn" class="secondary full">立即鎖定</button>
+          </div>
+
+          <div class="setting-card backup-card">
+            <h3>iCloud 加密備份</h3>
+            <p>按「立即備份」後，App 產生一個已加密檔案。iPhone 會跳出分享選單，請選「儲存到檔案」→ iCloud Drive。</p>
+            <div class="backup-meta">
+              <span>上次產生備份</span>
+              <strong id="lastBackupLabel">尚未備份</strong>
+            </div>
+            <button id="backupNowBtn" class="primary full">☁️ 立即備份</button>
+            <button id="restoreBackupBtn" class="secondary full">♻️ 從備份還原</button>
+            <input id="restoreFileInput" type="file" accept=".ldpbackup,application/json" class="hidden" />
+            <p class="tiny">備份檔本身已加密，還原時需要該份資料的 App PIN。Face ID 設定不會寫進備份檔。</p>
+          </div>
+
+          <div class="setting-card">
+            <h3>PIN 與安全</h3>
+            <p>資料使用隨機主金鑰 + AES-GCM 加密。PIN 只用來解開主金鑰，不直接保存。</p>
+            <button id="changePinBtn" class="secondary full">變更 App PIN</button>
           </div>
 
           <div class="setting-card">
@@ -149,7 +203,7 @@
 
           <div class="setting-card danger-card">
             <h3>清除本機資料</h3>
-            <p>會永久刪除這支手機裡的所有紀錄，無法復原。</p>
+            <p>會永久刪除這支手機裡的所有紀錄與 Face ID 設定，無法復原。</p>
             <button id="wipeBtn" class="danger full">清除全部資料</button>
           </div>
         </div>

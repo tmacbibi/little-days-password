@@ -768,7 +768,7 @@ async function createBackupFile(){
   };
   const text = JSON.stringify(backup);
   const stamp = new Date().toISOString().replace(/[:T]/g,'-').slice(0,16);
-  const name = `小日子密碼_${stamp}.ldpbackup`;
+  const name = `小日子密碼_${stamp}.ldpbackup.json`;
   return new File([text], name, {type:'application/json'});
 }
 

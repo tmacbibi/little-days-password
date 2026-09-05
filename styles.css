@@ -18,7 +18,7 @@ label{display:block;font-size:14px;font-weight:700;margin:15px 0 7px}.lock-card 
 /* Header */
 .topbar{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;padding:calc(env(safe-area-inset-top) + 14px) 20px 14px;background:rgba(245,246,248,.88);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px)}
 .brand-row{display:flex;align-items:center;gap:11px}.brand-mark{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;background:#fff;box-shadow:0 5px 18px rgba(17,24,39,.06);font-size:20px}
-.topbar h1{margin:0;font-size:24px;letter-spacing:-.035em}.topbar p{margin:3px 0 0;color:var(--muted);font-size:12px}.privacy-dot{margin:0 5px;color:#b8bdc6}.icon-btn{width:42px;height:42px;border-radius:14px;background:#fff;box-shadow:0 5px 18px rgba(17,24,39,.055);font-size:18px}
+.topbar h1{margin:0;font-size:26px;letter-spacing:-.04em}.topbar p{margin:4px 0 0;color:var(--muted);font-size:13px}.privacy-dot{margin:0 5px;color:#b8bdc6}.icon-btn{width:42px;height:42px;border-radius:14px;background:#fff;box-shadow:0 5px 18px rgba(17,24,39,.055);font-size:18px}
 .content{padding:0 16px calc(110px + env(safe-area-inset-bottom))}
 
 /* Search + filters */
@@ -26,12 +26,24 @@ label{display:block;font-size:14px;font-weight:700;margin:15px 0 7px}.lock-card 
 .filters{display:flex;gap:8px;overflow:auto;padding:13px 1px 12px;scrollbar-width:none}.filters::-webkit-scrollbar{display:none}.chip{white-space:nowrap;padding:9px 14px;border-radius:999px;background:rgba(255,255,255,.82);color:#59606d;font-size:13px;font-weight:700;border:1px solid #eceef2}.chip.active{background:var(--primary);border-color:var(--primary);color:#fff;box-shadow:0 4px 12px rgba(23,32,51,.14)}
 
 /* Password cards */
-.list{display:flex;flex-direction:column;gap:10px}.item{background:var(--surface);border:1px solid #eceef2;border-radius:20px;padding:16px 16px 0;box-shadow:0 6px 22px rgba(17,24,39,.035);overflow:hidden}
-.item-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}.item-main{min-width:0}.item-title{font-weight:820;font-size:17px;letter-spacing:-.015em;display:flex;align-items:center;gap:6px}.star{font-size:13px;color:#c89a39}.account{color:#69707d;font-size:13px;margin-top:5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.account-empty{color:#b5bac2}
-.badge{display:inline-flex;align-items:center;gap:5px;flex-shrink:0;font-size:11px;font-weight:750;background:#f4f5f7;color:#5f6672;border-radius:999px;padding:6px 9px}.badge-icon{font-size:12px}
-.hint-row{display:flex;align-items:center;gap:8px;margin-top:14px;padding:13px 0;border-top:1px solid #f0f1f3}.hint-block{flex:1;min-width:0}.hint-label{display:block;color:#a0a6af;font-size:10px;font-weight:700;margin-bottom:3px;letter-spacing:.02em}.hint{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:16px;letter-spacing:.08em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.mini-btn{background:#eef1f5;border-radius:10px;padding:8px 11px;font-size:12px;font-weight:750;color:#2e3747}.revealBtn{background:#172033;color:#fff}.icon-action{width:34px;height:34px;border-radius:10px;background:#f1f3f6;color:#4b5563;font-size:18px;display:grid;place-items:center}
-.item-actions{display:flex;margin:0 -16px;border-top:1px solid #f0f1f3;background:#fbfbfc}.action-link{flex:1;background:transparent;padding:11px 8px;color:#607084;font-size:12px;font-weight:700}.action-link+.action-link{border-left:1px solid #f0f1f3}.danger-link{color:#c24a4a}
+.list{display:flex;flex-direction:column;gap:12px}
+.item{background:var(--surface);border:1px solid #eceef2;border-radius:24px;padding:18px 16px 14px;box-shadow:0 6px 22px rgba(17,24,39,.035);overflow:hidden}
+.item[data-cat="家庭"]{background:#fff9e9;border-color:#f3e4a6}
+.item[data-cat="工作"]{background:#eef5ff;border-color:#d9e8ff}
+.item[data-cat="銀行"]{background:#eef8f4;border-color:#d7ebe3}
+.item[data-cat="購物"]{background:#fff3f4;border-color:#f6dadd}
+.item[data-cat="娛樂"]{background:#f4f1ff;border-color:#e2dbfb}
+.item[data-cat="其他"], .item[data-cat="社群"]{background:#f7f8fb;border-color:#e8eaf1}
+.item-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.item-main{min-width:0;flex:1}
+.item-title{font-weight:860;font-size:21px;line-height:1.2;letter-spacing:-.02em;display:flex;align-items:center;gap:6px}
+.star{font-size:14px;color:#c89a39}.account{color:#5f6876;font-size:15px;margin-top:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.account-empty{color:#b5bac2}
+.item-side{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.badge{display:inline-flex;align-items:center;gap:6px;flex-shrink:0;font-size:12px;font-weight:780;background:rgba(255,255,255,.66);color:#4b5563;border-radius:999px;padding:8px 11px;border:1px solid rgba(255,255,255,.75)}.badge-icon{font-size:13px}
+.menu-btn{width:34px;height:34px;border-radius:11px;background:rgba(255,255,255,.72);border:1px solid rgba(255,255,255,.7);color:#586170;font-size:18px;display:grid;place-items:center}
+.hint-row{display:flex;align-items:flex-end;gap:10px;margin-top:18px;padding-top:14px;border-top:1px solid rgba(17,24,39,.06)}.hint-block{flex:1;min-width:0}.hint-label{display:block;color:#87909d;font-size:11px;font-weight:760;margin-bottom:4px;letter-spacing:.02em}.hint{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:18px;font-weight:700;letter-spacing:.1em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hint-actions{display:flex;align-items:center;gap:8px}
+.mini-btn{background:#eef1f5;border-radius:12px;padding:10px 14px;font-size:13px;font-weight:760;color:#2e3747}.revealBtn{background:#172033;color:#fff}.icon-action{width:38px;height:38px;border-radius:12px;background:rgba(255,255,255,.72);border:1px solid rgba(17,24,39,.06);color:#4b5563;font-size:18px;display:grid;place-items:center}
 .empty{text-align:center;padding:70px 25px;color:var(--muted)}.empty-icon{font-size:44px}.empty h2{color:var(--text);margin-bottom:8px}.empty p{line-height:1.6}
 
 /* Bottom navigation: one integrated control, no overlapping FAB */
@@ -55,3 +67,10 @@ label{display:block;font-size:14px;font-weight:700;margin:15px 0 7px}.lock-card 
 
 /* v1.2.1 visible build marker */
 .version-badge{display:inline-flex;align-items:center;padding:2px 6px;border-radius:999px;background:#e9edf3;color:#596273;font-size:10px;font-weight:800;letter-spacing:.01em;vertical-align:1px}
+
+
+/* v1.2.3 action sheet */
+.action-sheet-card{max-width:520px}.action-list{padding-top:8px}.action-list .secondary,.action-list .danger{margin-top:0;margin-bottom:10px}.action-list .secondary:last-child,.action-list .danger:last-child{margin-bottom:0}
+
+/* v1.2.3 visible build marker */
+.version-badge{display:inline-flex;align-items:center;padding:3px 8px;border-radius:999px;background:#e9edf3;color:#596273;font-size:11px;font-weight:800;letter-spacing:.01em;vertical-align:1px}

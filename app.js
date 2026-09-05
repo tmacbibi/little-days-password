@@ -25,6 +25,7 @@ let activeFilter = 'all';
 let editingId = null;
 let hiddenAt = null;
 let inactivityTimer = null;
+let actionMenuItemId = null;
 
 const enc = new TextEncoder();
 const dec = new TextDecoder();
@@ -440,29 +441,45 @@ function render(){
     div.className='item';
     div.dataset.id=item.id;
     const cat = item.category || '其他';
+    div.dataset.cat = cat;
     div.innerHTML = `
       <div class="item-top">
         <div class="item-main">
           <div class="item-title">${item.favorite?'<span class="star">★</span>':''}${escapeHtml(item.name)}</div>
           ${item.account?`<div class="account">${escapeHtml(item.account)}</div>`:'<div class="account account-empty">未填帳號</div>'}
         </div>
-        <span class="badge"><span class="badge-icon">${categoryIcon(cat)}</span>${escapeHtml(cat)}</span>
+        <div class="item-side">
+          <span class="badge"><span class="badge-icon">${categoryIcon(cat)}</span>${escapeHtml(cat)}</span>
+          <button class="menu-btn moreBtn" aria-label="更多操作">…</button>
+        </div>
       </div>
       <div class="hint-row">
         <div class="hint-block">
           <span class="hint-label">密碼提示</span>
           <div class="hint" data-open="0">••••••••</div>
         </div>
-        <button class="mini-btn revealBtn">查看</button>
-        <button class="icon-action copyHintBtn" aria-label="複製密碼提示">⧉</button>
-      </div>
-      <div class="item-actions">
-        ${item.account?'<button class="action-link copyAccountBtn">複製帳號</button>':''}
-        <button class="action-link editBtn">編輯</button>
-        <button class="action-link danger-link deleteBtn">刪除</button>
+        <div class="hint-actions">
+          <button class="mini-btn revealBtn">查看</button>
+          <button class="icon-action copyHintBtn" aria-label="複製密碼提示">⧉</button>
+        </div>
       </div>`;
     $('list').appendChild(div);
   }
+}
+
+
+function openItemMenu(item){
+  actionMenuItemId = item.id;
+  $('itemMenuTitle').textContent = item.name || '這筆資料';
+  $('menuCopyAccountBtn').disabled = !item.account;
+  show($('itemMenuSheet'));
+}
+function closeItemMenu(){
+  actionMenuItemId = null;
+  hide($('itemMenuSheet'));
+}
+function currentActionMenuItem(){
+  return vault.find(x => x.id === actionMenuItemId) || null;
 }
 
 function openEditor(item=null){
@@ -896,6 +913,10 @@ function bindEvents(){
 
   $('settingsBtn').addEventListener('click',() => { updateSettingsUI(); show($('settingsScreen')); });
   $('closeSettingsBtn').addEventListener('click',() => hide($('settingsScreen')));
+  $('closeItemMenuBtn').addEventListener('click',closeItemMenu);
+  $('menuEditBtn').addEventListener('click',() => { const item=currentActionMenuItem(); if(!item) return; closeItemMenu(); openEditor(item); });
+  $('menuCopyAccountBtn').addEventListener('click',() => { const item=currentActionMenuItem(); if(!item || !item.account) return; copyText(item.account,'帳號已複製'); });
+  $('menuDeleteBtn').addEventListener('click',async() => { const item=currentActionMenuItem(); if(!item) return; closeItemMenu(); await deleteItem(item.id); });
   $('lockNowBtn').addEventListener('click',lockApp);
   $('lockNav').addEventListener('click',lockApp);
   $('changePinBtn').addEventListener('click',changePin);
@@ -934,9 +955,7 @@ function bindEvents(){
       hintEl.dataset.open=open?'0':'1';
       e.target.textContent=open?'查看':'隱藏';
     }else if(e.target.closest('.copyHintBtn')) copyText(item.hint,'提示已複製');
-    else if(e.target.closest('.copyAccountBtn')) copyText(item.account,'帳號已複製');
-    else if(e.target.closest('.editBtn')) openEditor(item);
-    else if(e.target.closest('.deleteBtn')) deleteItem(item.id);
+    else if(e.target.closest('.moreBtn')) openItemMenu(item);
   });
 
   ['pointerdown','keydown','touchstart'].forEach(evt =>
@@ -964,7 +983,7 @@ function bindEvents(){
 async function init(){
   bindEvents();
   if('serviceWorker' in navigator){
-    try{ await navigator.serviceWorker.register('./sw.js?v=1.2.1'); }
+    try{ await navigator.serviceWorker.register('./sw.js?v=1.2.3'); }
     catch(e){ console.warn('SW unavailable',e); }
   }
   renderLockMode();

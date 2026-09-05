@@ -4,14 +4,14 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <meta name="theme-color" content="#111827" />
-  <meta name="app-version" content="1.2.1" />
+  <meta name="app-version" content="1.2.3" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="小日子密碼" />
-  <link rel="manifest" href="manifest.json?v=1.2.1" />
+  <link rel="manifest" href="manifest.json?v=1.2.3" />
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
-  <link rel="stylesheet" href="styles.css?v=1.2.1" />
+  <link rel="stylesheet" href="styles.css?v=1.2.3" />
   <title>小日子密碼</title>
 </head>
 <body>
@@ -50,7 +50,7 @@
           <div class="brand-mark">🔐</div>
           <div>
             <h1>小日子密碼</h1>
-            <p><span id="countLabel">0 筆</span><span class="privacy-dot">•</span><span class="version-badge">V1.2.1</span><span class="privacy-dot">•</span>只存在這台裝置</p>
+            <p><span id="countLabel">0 筆</span><span class="privacy-dot">•</span><span class="version-badge">V1.2.3</span><span class="privacy-dot">•</span>只存在這台裝置</p>
           </div>
         </div>
         <button id="settingsBtn" class="icon-btn" aria-label="設定">⚙️</button>
@@ -155,6 +155,22 @@
       </div>
     </section>
 
+
+    <section id="itemMenuSheet" class="sheet hidden" aria-modal="true">
+      <div class="sheet-card action-sheet-card">
+        <div class="sheet-head">
+          <button id="closeItemMenuBtn" class="text-btn">關閉</button>
+          <h2 id="itemMenuTitle">這筆資料</h2>
+          <span></span>
+        </div>
+        <div class="settings-list action-list">
+          <button id="menuEditBtn" class="secondary full">編輯這筆</button>
+          <button id="menuCopyAccountBtn" class="secondary full">複製帳號</button>
+          <button id="menuDeleteBtn" class="danger full">刪除這筆</button>
+        </div>
+      </div>
+    </section>
+
     <section id="settingsScreen" class="sheet hidden" aria-modal="true">
       <div class="sheet-card">
         <div class="sheet-head">
@@ -214,8 +230,8 @@
           </div>
 
           <div class="setting-card app-info-card">
-            <div class="app-info-row"><span>小日子密碼</span><strong>V1.2.1</strong></div>
-            <p>介面優化＋更新識別版。資料格式與 V1.1.x 相同，更新不會清除現有紀錄。</p>
+            <div class="app-info-row"><span>小日子密碼</span><strong>V1.2.3</strong></div>
+            <p>卡片視覺柔化＋字體放大＋操作簡化版。資料格式與 V1.1.x 相同，更新不會清除現有紀錄。</p>
           </div>
 
           <div class="setting-card danger-card">
@@ -229,6 +245,6 @@
 
     <div id="toast" class="toast hidden"></div>
   </div>
-  <script src="app.js?v=1.2.1" defer></script>
+  <script src="app.js?v=1.2.3" defer></script>
 </body>
 </html>

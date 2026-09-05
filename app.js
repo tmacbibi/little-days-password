@@ -1,6 +1,8 @@
 'use strict';
 
 const $ = (id) => document.getElementById(id);
+const APP_VERSION = '1.3.0';
+let availableVersion = null;
 
 // v1.1 storage
 const VAULT_KEY = 'ldp_vault_v2';
@@ -891,6 +893,75 @@ async function wipe(){
   lockApp();
 }
 
+
+function compareVersions(a,b){
+  const pa=String(a).split('.').map(n=>Number(n)||0);
+  const pb=String(b).split('.').map(n=>Number(n)||0);
+  const len=Math.max(pa.length,pb.length);
+  for(let i=0;i<len;i++){
+    const x=pa[i]||0, y=pb[i]||0;
+    if(x>y) return 1;
+    if(x<y) return -1;
+  }
+  return 0;
+}
+
+async function fetchRemoteVersion(){
+  const url=`./index.html?version_check=${Date.now()}`;
+  const resp=await fetch(url,{cache:'no-store',headers:{'Cache-Control':'no-cache'}});
+  if(!resp.ok) throw new Error(`HTTP_${resp.status}`);
+  const text=await resp.text();
+  const match=text.match(/<meta\s+name=["']app-version["']\s+content=["']([^"']+)["']/i)
+    || text.match(/<meta\s+content=["']([^"']+)["']\s+name=["']app-version["']/i);
+  if(!match) throw new Error('VERSION_NOT_FOUND');
+  return match[1].trim();
+}
+
+async function checkForUpdates(interactive=true){
+  const status=$('updateStatus');
+  const btn=$('checkUpdateBtn');
+  const updateBtn=$('updateNowBtn');
+  if(status){ status.textContent='正在檢查…'; status.className='update-status'; }
+  if(btn) btn.disabled=true;
+  try{
+    const remote=await fetchRemoteVersion();
+    availableVersion=remote;
+    const cmp=compareVersions(remote,APP_VERSION);
+    if(cmp>0){
+      if(status){ status.textContent=`發現新版 V${remote}`; status.className='update-status available'; }
+      if(updateBtn){ updateBtn.textContent=`立即更新至 V${remote}`; show(updateBtn); }
+      if(interactive) toast(`發現新版 V${remote}`);
+    }else{
+      if(status){ status.textContent=`目前已是最新版 V${APP_VERSION}`; status.className='update-status latest'; }
+      if(updateBtn) hide(updateBtn);
+      if(interactive) toast('目前已是最新版');
+    }
+  }catch(err){
+    if(status){ status.textContent='目前無法連線檢查更新'; status.className='update-status error'; }
+    if(updateBtn) hide(updateBtn);
+    if(interactive) toast('檢查更新失敗，請確認網路');
+  }finally{
+    if(btn) btn.disabled=false;
+  }
+}
+
+async function forceAppUpdate(){
+  const btn=$('updateNowBtn');
+  if(btn){ btn.disabled=true; btn.textContent='正在更新…'; }
+  toast('正在重新載入新版程式…',2400);
+  try{
+    const keys=await caches.keys();
+    await Promise.all(keys.filter(k=>k.startsWith('little-days-password-')).map(k=>caches.delete(k)));
+    if('serviceWorker' in navigator){
+      const regs=await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(r=>r.update().catch(()=>{})));
+    }
+  }catch(e){ console.warn('Update cleanup warning',e); }
+  setTimeout(()=>{
+    location.replace(`./?app_update=${Date.now()}`);
+  },700);
+}
+
 function bindEvents(){
   $('createVaultBtn').addEventListener('click',createVault);
   $('legacyHelpBtn')?.addEventListener('click',showLegacyHelp);
@@ -911,8 +982,10 @@ function bindEvents(){
     }
   });
 
-  $('settingsBtn').addEventListener('click',() => { updateSettingsUI(); show($('settingsScreen')); });
+  $('settingsBtn').addEventListener('click',() => { updateSettingsUI(); show($('settingsScreen')); checkForUpdates(false); });
   $('closeSettingsBtn').addEventListener('click',() => hide($('settingsScreen')));
+  $('checkUpdateBtn').addEventListener('click',() => checkForUpdates(true));
+  $('updateNowBtn').addEventListener('click',forceAppUpdate);
   $('closeItemMenuBtn').addEventListener('click',closeItemMenu);
   $('menuEditBtn').addEventListener('click',() => { const item=currentActionMenuItem(); if(!item) return; closeItemMenu(); openEditor(item); });
   $('menuCopyAccountBtn').addEventListener('click',() => { const item=currentActionMenuItem(); if(!item || !item.account) return; copyText(item.account,'帳號已複製'); });
@@ -983,7 +1056,7 @@ function bindEvents(){
 async function init(){
   bindEvents();
   if('serviceWorker' in navigator){
-    try{ await navigator.serviceWorker.register('./sw.js?v=1.2.3'); }
+    try{ await navigator.serviceWorker.register('./sw.js?v=1.3.0'); }
     catch(e){ console.warn('SW unavailable',e); }
   }
   renderLockMode();

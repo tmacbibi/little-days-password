@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#111827" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="小日子密碼" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <link rel="stylesheet" href="styles.css" />
+  <title>小日子密碼</title>
+</head>
+<body>
+  <div id="app">
+    <section id="lockScreen" class="screen lock-screen">
+      <div class="lock-card">
+        <div class="brand-icon">🔐</div>
+        <h1>小日子密碼</h1>
+        <p class="sub">只記你看得懂的密碼提示，不保存真正密碼。</p>
+
+        <div id="firstRunBlock" class="hidden">
+          <label>建立 App PIN</label>
+          <input id="newPin" type="password" inputmode="numeric" autocomplete="new-password" maxlength="12" placeholder="至少 6 碼" />
+          <label>再輸入一次</label>
+          <input id="confirmPin" type="password" inputmode="numeric" autocomplete="new-password" maxlength="12" placeholder="再次輸入" />
+          <button id="createVaultBtn" class="primary full">建立我的密碼本</button>
+          <p class="tiny">PIN 只用來解鎖本機加密資料。忘記 PIN 無法還原。</p>
+        </div>
+
+        <div id="unlockBlock" class="hidden">
+          <label>App PIN</label>
+          <input id="unlockPin" type="password" inputmode="numeric" autocomplete="current-password" maxlength="12" placeholder="輸入 PIN" />
+          <button id="unlockBtn" class="primary full">解鎖</button>
+          <p id="unlockError" class="error hidden">PIN 不正確</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="mainScreen" class="screen hidden">
+      <header class="topbar">
+        <div>
+          <h1>小日子密碼</h1>
+          <p id="countLabel">0 筆</p>
+        </div>
+        <button id="settingsBtn" class="icon-btn" aria-label="設定">⚙️</button>
+      </header>
+
+      <main class="content">
+        <div class="search-wrap">
+          <span>🔎</span>
+          <input id="searchInput" type="search" placeholder="搜尋名稱、帳號、分類…" autocomplete="off" />
+        </div>
+
+        <div class="filters" id="filterBar">
+          <button class="chip active" data-filter="all">全部</button>
+          <button class="chip" data-filter="favorite">常用</button>
+          <button class="chip" data-filter="銀行">銀行</button>
+          <button class="chip" data-filter="購物">購物</button>
+          <button class="chip" data-filter="工作">工作</button>
+          <button class="chip" data-filter="娛樂">娛樂</button>
+          <button class="chip" data-filter="其他">其他</button>
+        </div>
+
+        <div id="emptyState" class="empty hidden">
+          <div class="empty-icon">🗝️</div>
+          <h2>還沒有任何紀錄</h2>
+          <p>先新增一筆，例如 Netflix、網路銀行或購物網站。</p>
+        </div>
+
+        <div id="list" class="list"></div>
+      </main>
+
+      <button id="addBtn" class="fab" aria-label="新增">＋</button>
+      <nav class="bottom-nav">
+        <button id="homeNav" class="nav-item active">🏠<span>首頁</span></button>
+        <button id="quickAddNav" class="nav-item">➕<span>新增</span></button>
+        <button id="lockNav" class="nav-item">🔒<span>鎖定</span></button>
+      </nav>
+    </section>
+
+    <section id="editorScreen" class="sheet hidden" aria-modal="true">
+      <div class="sheet-card">
+        <div class="sheet-head">
+          <button id="cancelEditBtn" class="text-btn">取消</button>
+          <h2 id="editorTitle">新增密碼提示</h2>
+          <button id="saveBtn" class="text-btn strong">儲存</button>
+        </div>
+
+        <div class="form">
+          <label>名稱 <span class="req">必填</span></label>
+          <input id="nameInput" type="text" placeholder="例如：Netflix" autocomplete="off" />
+
+          <label>帳號</label>
+          <input id="accountInput" type="text" placeholder="Email、手機或會員帳號" autocomplete="off" />
+
+          <label>密碼提示 <span class="req">必填</span></label>
+          <input id="hintInput" type="text" placeholder="例如：Ab**12*4" autocomplete="off" spellcheck="false" />
+          <div class="safety-tip">請直接輸入已遮蔽版本；你想用幾個 <b>*</b>、放在哪裡都可以。不要輸入完整密碼。</div>
+
+          <label>分類</label>
+          <select id="categoryInput">
+            <option value="其他">其他</option>
+            <option value="銀行">銀行</option>
+            <option value="購物">購物</option>
+            <option value="工作">工作</option>
+            <option value="娛樂">娛樂</option>
+            <option value="社群">社群</option>
+            <option value="家庭">家庭</option>
+          </select>
+
+          <label class="toggle-row">
+            <span>加入常用</span>
+            <input id="favoriteInput" type="checkbox" />
+          </label>
+
+          <details>
+            <summary>更多選項</summary>
+            <div class="details-body">
+              <label>備註</label>
+              <textarea id="noteInput" rows="3" placeholder="可留空"></textarea>
+            </div>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <section id="settingsScreen" class="sheet hidden" aria-modal="true">
+      <div class="sheet-card">
+        <div class="sheet-head">
+          <button id="closeSettingsBtn" class="text-btn">完成</button>
+          <h2>設定</h2>
+          <span></span>
+        </div>
+        <div class="settings-list">
+          <div class="setting-card">
+            <h3>安全</h3>
+            <p>資料以 AES-GCM 加密後才寫入此裝置。真正密碼請不要輸入 App。</p>
+            <button id="changePinBtn" class="secondary full">變更 App PIN</button>
+            <button id="lockNowBtn" class="secondary full">立即鎖定</button>
+          </div>
+
+          <div class="setting-card">
+            <h3>加入 iPhone 主畫面</h3>
+            <p>Safari 開啟網站 → 分享 →「加入主畫面」→ 開啟「作為網頁 App」。</p>
+          </div>
+
+          <div class="setting-card danger-card">
+            <h3>清除本機資料</h3>
+            <p>會永久刪除這支手機裡的所有紀錄，無法復原。</p>
+            <button id="wipeBtn" class="danger full">清除全部資料</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div id="toast" class="toast hidden"></div>
+  </div>
+  <script src="app.js" defer></script>
+</body>
+</html>

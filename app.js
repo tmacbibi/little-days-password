@@ -964,7 +964,7 @@ function bindEvents(){
 async function init(){
   bindEvents();
   if('serviceWorker' in navigator){
-    try{ await navigator.serviceWorker.register('./sw.js'); }
+    try{ await navigator.serviceWorker.register('./sw.js?v=1.2.1'); }
     catch(e){ console.warn('SW unavailable',e); }
   }
   renderLockMode();

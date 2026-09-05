@@ -1,5 +1,5 @@
-const CACHE='little-days-password-v1-2';
-const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.json','./icons/icon-192.png','./icons/icon-512.png'];
+const CACHE='little-days-password-v1-2-1';
+const ASSETS=['./','./index.html','./styles.css?v=1.2.1','./app.js?v=1.2.1','./manifest.json?v=1.2.1','./icons/icon-192.png','./icons/icon-512.png'];
 
 self.addEventListener('install',e=>{
   e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting()));

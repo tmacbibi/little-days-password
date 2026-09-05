@@ -52,3 +52,6 @@ label{display:block;font-size:14px;font-weight:700;margin:15px 0 7px}.lock-card 
 .migration-warning{margin-top:14px;padding:12px;background:#fff8ee;border:1px solid #efcf9d;border-radius:14px}.migration-warning strong{display:block;color:#8a6023}.migration-warning p{margin:6px 0 8px;color:#7a5926;font-size:12px;line-height:1.55}.rescue-card{border-color:#ead8b5}
 
 @media(min-width:700px){.content,.topbar{max-width:640px;margin:auto}.sheet{align-items:center;justify-content:center}.sheet-card{max-width:520px;border-radius:26px;max-height:88dvh}}
+
+/* v1.2.1 visible build marker */
+.version-badge{display:inline-flex;align-items:center;padding:2px 6px;border-radius:999px;background:#e9edf3;color:#596273;font-size:10px;font-weight:800;letter-spacing:.01em;vertical-align:1px}

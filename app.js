@@ -11,6 +11,7 @@ const SETTINGS_KEY = 'ldp_settings_v2';
 const LEGACY_STORAGE_KEY = 'ldp_vault_v1';
 const LEGACY_SALT_KEY = 'ldp_salt_v1';
 const LEGACY_SETTINGS_KEY = 'ldp_settings_v1';
+const LEGACY_ARCHIVE_KEY = 'ldp_legacy_archive_v1';
 
 const HIDDEN_LOCK_MS = 30_000;
 const DEFAULT_INACTIVITY_LOCK_MS = 60_000;
@@ -198,10 +199,74 @@ async function migrateLegacy(pin){
     });
   }catch{}
 
-  localStorage.removeItem(LEGACY_STORAGE_KEY);
-  localStorage.removeItem(LEGACY_SALT_KEY);
-  localStorage.removeItem(LEGACY_SETTINGS_KEY);
-  toast('舊版資料已安全升級', 2400);
+  // v1.1.1 safety rule: NEVER delete legacy v1 automatically.
+  // Keep an encrypted snapshot so a bad migration/update cannot destroy the only copy.
+  try{
+    localStorage.setItem(LEGACY_ARCHIVE_KEY, JSON.stringify({
+      archivedAt:new Date().toISOString(),
+      vault:localStorage.getItem(LEGACY_STORAGE_KEY),
+      salt:localStorage.getItem(LEGACY_SALT_KEY),
+      settings:localStorage.getItem(LEGACY_SETTINGS_KEY)
+    }));
+  }catch{}
+  toast('舊版資料已升級；原始舊資料仍保留', 2600);
+}
+
+
+function isStandaloneMode(){
+  return window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
+}
+
+function showSafariTransferWarning(){
+  if(!isStandaloneMode() || vaultExists()) return;
+  const el=$('safariTransferWarning');
+  if(el) show(el);
+}
+
+function showLegacyHelp(){
+  alert(
+    '如果你曾經先在 Safari 網頁版新增資料，再把 App 加到主畫面，iPhone 會把兩邊的本機資料分開。\n\n' +
+    '找回方法：\n1. 用 Safari 直接開同一個 GitHub Pages 網址（不要從桌面圖示進入）\n' +
+    '2. 用舊 PIN 解鎖；若偵測到 V1 資料會自動安全升級\n' +
+    '3. 到設定按「立即備份」，存到 iCloud Drive\n' +
+    '4. 回到桌面版小日子密碼 → 設定 → 從備份還原\n\n' +
+    '新版還原會採「合併」，不會把目前資料直接覆蓋。'
+  );
+}
+
+function mergeVaultItems(currentItems, incomingItems){
+  const out=[...currentItems];
+  const seen=new Set(out.map(x => x.id || `${x.name}\u0000${x.account}\u0000${x.hint}`));
+  for(const item of incomingItems){
+    const key=item.id || `${item.name}\u0000${item.account}\u0000${item.hint}`;
+    if(!seen.has(key)){
+      out.push(item);
+      seen.add(key);
+    }
+  }
+  return out;
+}
+
+async function recoverLegacyIntoCurrent(){
+  if(!legacyVaultExists()){
+    showLegacyHelp();
+    return;
+  }
+  if(!masterKey){ toast('請先解鎖目前的密碼本'); return; }
+  const oldPin=prompt('請輸入 V1 舊版使用的 PIN');
+  if(oldPin===null) return;
+  try{
+    const legacyData=await decryptLegacyVault(oldPin.trim());
+    const before=vault.length;
+    vault=mergeVaultItems(vault, legacyData);
+    await persistVault();
+    if(vault.length && !getSettings().firstDataAt) setSettings({firstDataAt:new Date().toISOString()});
+    render();
+    toast(`已找回 ${vault.length-before} 筆舊版資料`, 2800);
+  }catch(err){
+    console.warn(err);
+    toast('找回失敗：舊 PIN 不正確或舊資料無法讀取', 2800);
+  }
 }
 
 function clearSensitiveMemory(){
@@ -219,6 +284,7 @@ function renderLockMode(){
   hide($('editorScreen'));
   hide($('settingsScreen'));
 
+  if($('safariTransferWarning')) hide($('safariTransferWarning'));
   if(vaultExists()){
     hide($('firstRunBlock'));
     show($('unlockBlock'));
@@ -232,6 +298,7 @@ function renderLockMode(){
   }else{
     show($('firstRunBlock'));
     hide($('unlockBlock'));
+    showSafariTransferWarning();
   }
 }
 
@@ -288,6 +355,7 @@ async function unlock(){
 }
 
 function enterApp(){
+  try{ navigator.storage?.persist?.(); }catch{}
   hide($('lockScreen'));
   show($('mainScreen'));
   resetInactivityTimer();
@@ -749,28 +817,38 @@ async function restoreBackupFile(file){
     }
     const pin = prompt('請輸入這份備份的 App PIN 以驗證資料');
     if(pin===null) return;
-    const rawMaster = await unwrapMasterWithPin(pin.trim(), backup.vault.pin);
-    const key = await importMasterKey(rawMaster);
-    const data = await decryptVaultRecord(key, backup.vault);
-    if(!Array.isArray(data)) throw new Error('INVALID_DATA');
+    const incomingRawMaster = await unwrapMasterWithPin(pin.trim(), backup.vault.pin);
+    const incomingKey = await importMasterKey(incomingRawMaster);
+    const incomingData = await decryptVaultRecord(incomingKey, backup.vault);
+    if(!Array.isArray(incomingData)) throw new Error('INVALID_DATA');
 
-    if(!confirm(`備份內有 ${data.length} 筆資料。確定要覆蓋這支手機目前的資料？`)) return;
-
-    localStorage.setItem(VAULT_KEY, JSON.stringify(backup.vault));
-    disableFaceId(false); // Face ID must be freshly bound on this device/origin.
-    setSettings({
-      inactivityLockMs:getSettings().inactivityLockMs || DEFAULT_INACTIVITY_LOCK_MS,
-      lastBackupAt:new Date().toISOString(),
-      firstDataAt:backup.settings?.firstDataAt || (data.length ? new Date().toISOString() : null)
-    });
-
-    clearSensitiveMemory();
-    masterKeyBytes = rawMaster;
-    masterKey = key;
-    vault = data;
-    hide($('settingsScreen'));
-    enterApp();
-    toast('備份已還原；請重新啟用 Face ID', 2800);
+    // Safety-first restore: merge by default so an old backup can never silently wipe newer local data.
+    if(masterKey){
+      const before=vault.length;
+      vault=mergeVaultItems(vault, incomingData);
+      await persistVault();
+      setSettings({
+        lastBackupAt:new Date().toISOString(),
+        firstDataAt:getSettings().firstDataAt || backup.settings?.firstDataAt || (vault.length ? new Date().toISOString() : null)
+      });
+      hide($('settingsScreen'));
+      render();
+      toast(`備份已合併，新增 ${vault.length-before} 筆`, 2800);
+    }else{
+      // First-run/import case: adopt the backup vault as-is.
+      localStorage.setItem(VAULT_KEY, JSON.stringify(backup.vault));
+      disableFaceId(false);
+      setSettings({
+        inactivityLockMs:DEFAULT_INACTIVITY_LOCK_MS,
+        lastBackupAt:new Date().toISOString(),
+        firstDataAt:backup.settings?.firstDataAt || (incomingData.length ? new Date().toISOString() : null)
+      });
+      masterKeyBytes=incomingRawMaster;
+      masterKey=incomingKey;
+      vault=incomingData;
+      enterApp();
+      toast('備份已還原；請重新啟用 Face ID', 2800);
+    }
   }catch(err){
     console.warn(err);
     toast('無法還原：檔案或 PIN 不正確', 2600);
@@ -782,13 +860,13 @@ async function restoreBackupFile(file){
 async function wipe(){
   if(!confirm('確定要永久清除這支手機的所有紀錄？')) return;
   if(!confirm('最後確認：清除後只能靠先前的備份還原。')) return;
-  [VAULT_KEY,FACE_KEY,SETTINGS_KEY,LEGACY_STORAGE_KEY,LEGACY_SALT_KEY,LEGACY_SETTINGS_KEY]
-    .forEach(k => localStorage.removeItem(k));
+  [VAULT_KEY,FACE_KEY,SETTINGS_KEY].forEach(k => localStorage.removeItem(k));
   lockApp();
 }
 
 function bindEvents(){
   $('createVaultBtn').addEventListener('click',createVault);
+  $('legacyHelpBtn')?.addEventListener('click',showLegacyHelp);
   $('unlockBtn').addEventListener('click',unlock);
   $('faceUnlockBtn').addEventListener('click',faceUnlock);
   $('unlockPin').addEventListener('keydown',e => {if(e.key==='Enter') unlock();});
@@ -814,6 +892,7 @@ function bindEvents(){
   $('enableFaceBtn').addEventListener('click',enableFaceId);
   $('disableFaceBtn').addEventListener('click',() => disableFaceId(true));
   $('backupNowBtn').addEventListener('click',backupNow);
+  $('recoverLegacyBtn')?.addEventListener('click',recoverLegacyIntoCurrent);
   $('backupNowTopBtn').addEventListener('click',backupNow);
   $('restoreBackupBtn').addEventListener('click',() => $('restoreFileInput').click());
   $('restoreFileInput').addEventListener('change',e => restoreBackupFile(e.target.files?.[0]));

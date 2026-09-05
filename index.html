@@ -27,6 +27,7 @@
           <label>再輸入一次</label>
           <input id="confirmPin" type="password" inputmode="numeric" autocomplete="new-password" maxlength="12" placeholder="再次輸入" />
           <button id="createVaultBtn" class="primary full">建立我的密碼本</button>
+          <div id="safariTransferWarning" class="migration-warning hidden"><strong>⚠️ 之前曾在 Safari 版新增資料？</strong><p>先不要建立新的密碼本。iPhone 的 Safari 與主畫面 Web App 可能使用不同的本機資料空間。</p><button id="legacyHelpBtn" type="button" class="secondary full">找回 Safari 舊資料</button></div>
           <p class="tiny">PIN 是 Face ID 的備援解鎖方式，也用來保護加密備份。請務必記住。</p>
         </div>
 
@@ -188,6 +189,12 @@
             <button id="restoreBackupBtn" class="secondary full">♻️ 從備份還原</button>
             <input id="restoreFileInput" type="file" accept=".ldpbackup,application/json" class="hidden" />
             <p class="tiny">備份檔本身已加密，還原時需要該份資料的 App PIN。Face ID 設定不會寫進備份檔。</p>
+          </div>
+
+          <div class="setting-card rescue-card">
+            <h3>🧯 舊版資料救援</h3>
+            <p>若這個環境仍偵測得到 V1 舊資料，可用舊 PIN 合併回目前密碼本；不會刪除目前資料。</p>
+            <button id="recoverLegacyBtn" class="secondary full">檢查並找回 V1 舊資料</button>
           </div>
 
           <div class="setting-card">

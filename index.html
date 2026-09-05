@@ -45,9 +45,12 @@
 
     <section id="mainScreen" class="screen hidden">
       <header class="topbar">
-        <div>
-          <h1>小日子密碼</h1>
-          <p id="countLabel">0 筆</p>
+        <div class="brand-row">
+          <div class="brand-mark">🔐</div>
+          <div>
+            <h1>小日子密碼</h1>
+            <p><span id="countLabel">0 筆</span><span class="privacy-dot">•</span> 只存在這台裝置</p>
+          </div>
         </div>
         <button id="settingsBtn" class="icon-btn" aria-label="設定">⚙️</button>
       </header>
@@ -68,10 +71,11 @@
 
         <div class="filters" id="filterBar">
           <button class="chip active" data-filter="all">全部</button>
+          <button class="chip" data-filter="家庭">家庭</button>
+          <button class="chip" data-filter="工作">工作</button>
           <button class="chip" data-filter="favorite">常用</button>
           <button class="chip" data-filter="銀行">銀行</button>
           <button class="chip" data-filter="購物">購物</button>
-          <button class="chip" data-filter="工作">工作</button>
           <button class="chip" data-filter="娛樂">娛樂</button>
           <button class="chip" data-filter="其他">其他</button>
         </div>
@@ -125,13 +129,13 @@
 
           <label>分類</label>
           <select id="categoryInput">
-            <option value="其他">其他</option>
+            <option value="家庭">家庭</option>
+            <option value="工作">工作</option>
             <option value="銀行">銀行</option>
             <option value="購物">購物</option>
-            <option value="工作">工作</option>
             <option value="娛樂">娛樂</option>
             <option value="社群">社群</option>
-            <option value="家庭">家庭</option>
+            <option value="其他">其他</option>
           </select>
 
           <label class="toggle-row">
@@ -206,6 +210,11 @@
           <div class="setting-card">
             <h3>加入 iPhone 主畫面</h3>
             <p>Safari 開啟網站 → 分享 →「加入主畫面」→ 開啟「作為網頁 App」。</p>
+          </div>
+
+          <div class="setting-card app-info-card">
+            <div class="app-info-row"><span>小日子密碼</span><strong>V1.2</strong></div>
+            <p>介面優化版。資料格式與 V1.1.x 相同，更新不會清除現有紀錄。</p>
           </div>
 
           <div class="setting-card danger-card">

@@ -416,6 +416,12 @@ function renderBackupReminder(){
     : '已有資料超過 30 天尚未備份。';
 }
 
+function categoryIcon(category){
+  return ({
+    '家庭':'🏠','工作':'💼','銀行':'🏦','購物':'🛍️','娛樂':'🎬','社群':'💬','其他':'🔖'
+  })[category] || '🔖';
+}
+
 function render(){
   if(!masterKey) return;
   const items = filteredItems();
@@ -433,23 +439,27 @@ function render(){
     const div = document.createElement('article');
     div.className='item';
     div.dataset.id=item.id;
+    const cat = item.category || '其他';
     div.innerHTML = `
       <div class="item-top">
-        <div>
-          <div class="item-title">${item.favorite?'<span class="star">⭐</span>':''}${escapeHtml(item.name)}</div>
-          ${item.account?`<div class="account">${escapeHtml(item.account)}</div>`:''}
+        <div class="item-main">
+          <div class="item-title">${item.favorite?'<span class="star">★</span>':''}${escapeHtml(item.name)}</div>
+          ${item.account?`<div class="account">${escapeHtml(item.account)}</div>`:'<div class="account account-empty">未填帳號</div>'}
         </div>
-        <span class="badge">${escapeHtml(item.category||'其他')}</span>
+        <span class="badge"><span class="badge-icon">${categoryIcon(cat)}</span>${escapeHtml(cat)}</span>
       </div>
       <div class="hint-row">
-        <div class="hint" data-open="0">••••••••</div>
+        <div class="hint-block">
+          <span class="hint-label">密碼提示</span>
+          <div class="hint" data-open="0">••••••••</div>
+        </div>
         <button class="mini-btn revealBtn">查看</button>
-        <button class="mini-btn copyHintBtn">複製</button>
+        <button class="icon-action copyHintBtn" aria-label="複製密碼提示">⧉</button>
       </div>
       <div class="item-actions">
-        ${item.account?'<button class="mini-btn copyAccountBtn">複製帳號</button>':''}
-        <button class="mini-btn editBtn">編輯</button>
-        <button class="mini-btn delete-mini deleteBtn">刪除</button>
+        ${item.account?'<button class="action-link copyAccountBtn">複製帳號</button>':''}
+        <button class="action-link editBtn">編輯</button>
+        <button class="action-link danger-link deleteBtn">刪除</button>
       </div>`;
     $('list').appendChild(div);
   }
